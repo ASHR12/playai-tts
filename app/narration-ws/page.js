@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
+import { Mic, Wand2, RefreshCw } from 'lucide-react'
 import voicesData from '@/data/voices.json'
 
 const MAX_TEXT_LENGTH = 5000
@@ -316,116 +317,147 @@ export default function TTS() {
   }, [])
 
   return (
-    <div className='min-h-screen bg-[#0f172a] text-white py-8'>
-      <main className='container mx-auto p-4 max-w-4xl relative'>
-        <h1 className='text-4xl font-bold mb-8 text-center'>
-          Narration - 1 Speaker
-        </h1>
+    <div className='min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white py-8'>
+      <div className='container mx-auto p-6'>
+        <div className='max-w-4xl mx-auto'>
+          <h1 className='text-5xl font-bold mb-8 text-center text-orange-500'>
+            AI Narration
+          </h1>
+          <p className='text-xl text-center mb-12 text-gray-300'>
+            Create stunning narrations with AI-powered voices
+          </p>
 
-        <Card className='bg-[#1e293b] border-[#334155]'>
-          <CardContent className='p-6 space-y-6'>
-            <div className='flex space-x-4 items-center'>
-              <div className='flex-1'>
-                <Select
-                  value={selectedVoice}
-                  onValueChange={setSelectedVoice}
-                  disabled={isConverting}
-                >
-                  <SelectTrigger
-                    id='voice-select'
-                    className='w-full bg-[#334155] border-[#475569] text-white'
+          <Card className='bg-[#1e293b]/80 border-[#334155] backdrop-blur-sm shadow-xl'>
+            <CardHeader>
+              <CardTitle className='text-3xl text-white flex items-center gap-3'>
+                <Mic className='w-8 h-8 text-orange-500' />
+                Generate Narration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-6'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div>
+                  <label className='block text-lg font-medium mb-2 text-gray-300'>
+                    Select Voice
+                  </label>
+                  <Select
+                    value={selectedVoice}
+                    onValueChange={setSelectedVoice}
+                    disabled={isConverting}
                   >
-                    <SelectValue placeholder='Select a voice' />
-                  </SelectTrigger>
-                  <SelectContent className='bg-[#334155] border-[#475569]'>
-                    {voicesData.default_voices.map((voice) => (
-                      <SelectItem
-                        key={voice.voice}
-                        value={voice.id}
-                        className='text-white focus:bg-[#475569] focus:text-white'
-                      >
-                        {voice.voice} ({voice.accent}, {voice.gender},{' '}
-                        {voice.age})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    <SelectTrigger className='w-full bg-[#334155]/50 border-[#475569] text-white text-lg'>
+                      <SelectValue placeholder='Select a voice' />
+                    </SelectTrigger>
+                    <SelectContent className='bg-[#334155] border-[#475569]'>
+                      {voicesData.default_voices.map((voice) => (
+                        <SelectItem
+                          key={voice.id}
+                          value={voice.id}
+                          className='text-white focus:bg-[#475569] focus:text-white'
+                        >
+                          {voice.voice} ({voice.accent}, {voice.gender},{' '}
+                          {voice.age})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor='temperature-slider'
+                    className='block text-lg font-medium mb-2 text-gray-300'
+                  >
+                    Temperature: {temperature.toFixed(2)}
+                  </label>
+                  <Slider
+                    id='temperature-slider'
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={[temperature]}
+                    onValueChange={(value) => setTemperature(value[0])}
+                    disabled={isConverting}
+                    className='w-full'
+                  />
+                </div>
               </div>
 
-              <div className='flex-1'>
+              <div>
                 <label
-                  htmlFor='temperature-slider'
-                  className='block text-sm font-medium text-gray-200 mb-2'
+                  htmlFor='text-input'
+                  className='block text-lg font-medium mb-2 text-gray-300'
                 >
-                  Temperature: {temperature.toFixed(2)}
+                  Enter Text
                 </label>
-                <Slider
-                  id='temperature-slider'
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={[temperature]}
-                  onValueChange={(value) => setTemperature(value[0])}
+                <Textarea
+                  id='text-input'
+                  placeholder='Enter text to convert to speech...'
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  className='h-40 bg-[#334155]/50 border-[#475569] text-white placeholder:text-gray-400 text-lg'
+                  maxLength={MAX_TEXT_LENGTH}
                   disabled={isConverting}
-                  className='w-full'
                 />
+                <p className='text-sm text-gray-400 mt-2'>
+                  {text.length}/{MAX_TEXT_LENGTH} characters
+                </p>
               </div>
-            </div>
 
-            <div>
-              <label
-                htmlFor='text-input'
-                className='block text-sm font-medium text-gray-200 mb-2'
+              <Button
+                onClick={generateSpeech}
+                disabled={isConverting || !text.trim() || !selectedVoice}
+                className='w-full bg-orange-500 hover:bg-orange-600 text-white text-lg py-6'
               >
-                Enter Text
-              </label>
-              <Textarea
-                id='text-input'
-                placeholder='Enter text to convert to speech...'
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                className='w-full bg-[#334155] border-[#475569] text-white placeholder:text-gray-400'
-                rows={6}
-                maxLength={MAX_TEXT_LENGTH}
-                disabled={isConverting}
-              />
-              <p className='text-sm text-gray-400'>
-                {text.length}/{MAX_TEXT_LENGTH} characters
-              </p>
-            </div>
+                {isConverting ? (
+                  <RefreshCw className='w-6 h-6 mr-2 animate-spin' />
+                ) : (
+                  <Wand2 className='w-6 h-6 mr-2' />
+                )}
+                {isConverting ? 'Generating...' : 'Generate Narration'}
+              </Button>
 
-            <Button
-              onClick={generateSpeech}
-              className='w-full bg-orange-500 hover:bg-orange-600 text-white disabled:bg-orange-800 disabled:text-gray-300'
-              disabled={isConverting || !text.trim() || !selectedVoice}
-            >
-              {isConverting ? 'Generating...' : 'Generate'}
-            </Button>
+              {error && (
+                <div className='p-4 bg-red-500/20 border border-red-500 text-red-100 rounded-lg'>
+                  {error}
+                  <button
+                    className='ml-2 text-sm underline hover:text-red-200'
+                    onClick={() => setError('')}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
 
-            {error && (
-              <div className='mt-2 p-2 bg-red-900/50 border border-red-700 text-red-200 rounded'>
-                {error}
-                <button
-                  className='ml-2 text-sm underline hover:text-red-100'
-                  onClick={() => setError('')}
+              {(isConverting || audioRef.current?.src) && (
+                <Card
+                  className='bg-[#1e293b]/60 
+border-[#334155] mt-4'
                 >
-                  Dismiss
-                </button>
-              </div>
-            )}
-
-            <audio
-              ref={audioRef}
-              controls
-              className='w-full mt-4'
-              onError={(e) => {
-                console.error('Audio playback error:', e)
-                setError('Audio playback error')
-              }}
-            />
-          </CardContent>
-        </Card>
-      </main>
+                  <CardHeader>
+                    <CardTitle className='text-2xl text-white'>
+                      Your Generated Narration
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <audio
+                      ref={audioRef}
+                      controls
+                      className='w-full'
+                      onError={(e) => {
+                        console.error('Audio playback error:', e)
+                        setError('Audio playback error')
+                      }}
+                    >
+                      Your browser does not support the audio element.
+                    </audio>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }
