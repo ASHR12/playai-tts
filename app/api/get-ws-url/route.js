@@ -1,32 +1,32 @@
-import { NextResponse } from 'next/server'
+/**
+ * API endpoint to generate WebSocket connection URL with authentication token
+ * @route GET /api/get-ws-url
+ * @returns {Object} Contains WebSocket URL and authentication token
+ */
 
-export async function POST(request) {
+import { NextResponse } from 'next/server';
+
+export async function GET() {
   try {
-    const response = await fetch('https://api.play.ai/api/v1/tts/auth', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.PLAY_AI_API_KEY}`,
-        'X-User-Id': process.env.PLAY_AI_USER_ID,
-        'Content-Type': 'application/json',
-      },
-    })
+    // Generate secure authentication token
+    const token = crypto.randomUUID();
 
-    const data = await response.json()
-    console.log('Play.ai Response:', data)
+    // Configure WebSocket URL based on environment
+    const wsUrl = process.env.NODE_ENV === 'production'
+      ? 'wss://your-production-url.com'
+      : 'ws://localhost:3000';
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: data.message || 'Authentication failed' },
-        { status: response.status }
-      )
-    }
-
-    return NextResponse.json(data, { status: 200 })
+    // Return WebSocket connection details
+    return NextResponse.json({
+      url: wsUrl,
+      token: token
+    });
   } catch (error) {
-    console.error('Error:', error)
+    // Handle potential errors during URL/token generation
+    console.error('WebSocket URL generation error:', error);
     return NextResponse.json(
-      { error: 'Failed to get WebSocket URL' },
+      { error: 'Failed to generate WebSocket URL' },
       { status: 500 }
-    )
+    );
   }
 }
