@@ -22,6 +22,7 @@ If you enjoy this project and want to support me, consider buying me a coffee or
 - **Narration**: Single Speaker - Websocket Implementation of Play3.0-mini model.
 - **AI-Podcast**: Two Speaker - Asycn implementation of PlayDialog model.
 - **AI-Podcast**: Two Speaker - Streaming implementation of PlayDialog model.
+- **Voice to Image** - Web Embed feature of PlayAI.
 
 ### Resources
 
@@ -36,7 +37,7 @@ To clone the repository, use the following command:
 git clone https://github.com/yourusername/ai-podcast-creator.git
 ```
 
-## Environment Variables
+## Environment Variables and Important Configurations
 
 Before running the application, you need to set up your environment variables. Create a `.env` file in the root of the project and add the following fields:
 
@@ -44,8 +45,12 @@ Before running the application, you need to set up your environment variables. C
 PLAY_AI_USER_ID=your_play_ai_user_id
 PLAY_AI_API_KEY=your_play_ai_api_key
 GEMINI_API_KEY=your_gemini_api_key
+FAL_KEY=your fal api key for voice to image application.
 ```
 
+## Configuration
+
+`Note Also setup webEmbedId in page.js of voice-to-image`
 Make sure to replace the placeholder values with your actual API keys.
 
 ## Running the Application

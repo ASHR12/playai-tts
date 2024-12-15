@@ -9,7 +9,7 @@ import { Star, MessageSquare, User, ThumbsUp } from 'lucide-react'
 import { open as openEmbed } from '@play-ai/web-embed'
 
 // Replace with your web embed ID
-const webEmbedId = 'IvZA9VBRpHgwuBgEHatVe'
+const webEmbedId = ''
 
 export default function FeedbackForm() {
   const formFields = [
