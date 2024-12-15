@@ -24,9 +24,6 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        <footer className='fixed bottom-0 left-0 right-0 mb-4 text-center text-gray-400'>
-          <p>&copy; Created by Ashutosh Shrivastava</p>
-        </footer>
       </body>
     </html>
   )

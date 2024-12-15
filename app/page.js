@@ -2,7 +2,14 @@
 
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { Mic, Users, BotIcon as Robot, Podcast, Radio } from 'lucide-react'
+import {
+  Mic,
+  Users,
+  BotIcon as Robot,
+  Podcast,
+  Radio,
+  Image,
+} from 'lucide-react'
 
 export default function Home() {
   return (
@@ -64,6 +71,26 @@ export default function Home() {
                 <p className='text-center text-gray-300'>Two Speakers</p>
                 <p className='text-center text-gray-400 text-sm mt-2'>
                   Streaming
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link
+            href='/voice-to-image'
+            className='block transform hover:scale-105 transition-all duration-300'
+          >
+            <Card className='bg-[#1e293b] border-[#334155] hover:bg-[#2d3748] h-full'>
+              <CardContent className='p-6 flex flex-col items-center justify-center min-h-[250px]'>
+                <Image className='w-16 h-16 mb-6 text-orange-500' />
+                <h2 className='text-2xl font-semibold mb-2 text-white text-center'>
+                  Voice-To-Image
+                </h2>
+                <p className='text-center text-gray-300'>
+                  Create image using Fal AI
+                </p>
+                <p className='text-center text-gray-400 text-sm mt-2'>
+                  Web Embed Example
                 </p>
               </CardContent>
             </Card>

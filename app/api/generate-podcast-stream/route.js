@@ -26,7 +26,7 @@ export async function POST(req) {
     }
 
     console.log('[API] Sending request to Play.AI')
-    const response = await fetch('https://api.play.ai/api/v1/tts/stream', {
+    const response = fetch('https://api.play.ai/api/v1/tts/stream', {
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
