@@ -34,7 +34,7 @@ If you enjoy this project and want to support me, consider buying me a coffee or
 To clone the repository, use the following command:
 
 ```bash
-git clone https://github.com/yourusername/ai-podcast-creator.git
+git clone https://github.com/ASHR12/playai-tts
 ```
 
 ## Environment Variables and Important Configurations
@@ -60,7 +60,7 @@ To run the application, follow these steps:
 1. **Install Dependencies**: Navigate to the project directory and install the required dependencies.
 
    ```bash
-   cd ai-podcast-creator
+   cd playai-tts
    npm install
    ```
 
