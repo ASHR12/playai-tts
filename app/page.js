@@ -1,7 +1,5 @@
 'use client'
 
-import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
 import {
   Mic,
   Users,
@@ -9,7 +7,47 @@ import {
   Podcast,
   Radio,
   Image,
+  Youtube,
 } from 'lucide-react'
+import FeatureCard from '@/components/FeatureCard'
+
+const features = [
+  {
+    href: '/voice-to-youtube',
+    icon: Youtube,
+    title: 'Voice-To-YouTube',
+    description: 'Search YouTube Videos',
+    subDescription: 'Web Embed Example',
+  },
+  {
+    href: '/voice-to-image',
+    icon: Image,
+    title: 'Voice-To-Image',
+    description: 'Create image using Fal AI',
+    subDescription: 'Web Embed Example',
+  },
+  {
+    href: '/narration-ws',
+    icon: Mic,
+    title: 'Narration',
+    description: 'Single-speaker',
+    subDescription: 'Websocket Implementation',
+  },
+  {
+    href: '/podcast-async',
+    icon: Podcast,
+    title: 'AI Podcast',
+    description: 'Two Speakers',
+    subDescription: 'Asynchronous Generation',
+  },
+  {
+    href: '/podcast-stream',
+    icon: Radio,
+    title: 'AI Podcast',
+    description: 'Two Speakers',
+    subDescription: 'Streaming',
+  },
+]
 
 export default function Home() {
   return (
@@ -22,97 +60,16 @@ export default function Home() {
           Seamless, natural conversations with voice AI.
         </p>
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8'>
-          <Link
-            href='/narration-ws'
-            className='block transform hover:scale-105 transition-all duration-300'
-          >
-            <Card className='bg-[#1e293b] border-[#334155] hover:bg-[#2d3748] h-full'>
-              <CardContent className='p-6 flex flex-col items-center justify-center min-h-[250px]'>
-                <Mic className='w-16 h-16 mb-6 text-orange-500' />
-                <h2 className='text-2xl font-semibold mb-2 text-white text-center'>
-                  Narration
-                </h2>
-                <p className='text-center text-gray-300'>Single-speaker</p>
-                <p className='text-center text-gray-400 text-sm mt-2'>
-                  Websocket Implementation
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link
-            href='/podcast-async'
-            className='block transform hover:scale-105 transition-all duration-300'
-          >
-            <Card className='bg-[#1e293b] border-[#334155] hover:bg-[#2d3748] h-full'>
-              <CardContent className='p-6 flex flex-col items-center justify-center min-h-[250px]'>
-                <Podcast className='w-16 h-16 mb-6 text-orange-500' />
-                <h2 className='text-2xl font-semibold mb-2 text-white text-center'>
-                  AI Podcast
-                </h2>
-                <p className='text-center text-gray-300'>Two Speakers</p>
-                <p className='text-center text-gray-400 text-sm mt-2'>
-                  Asynchronous Generation
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link
-            href='/podcast-stream'
-            className='block transform hover:scale-105 transition-all duration-300'
-          >
-            <Card className='bg-[#1e293b] border-[#334155] hover:bg-[#2d3748] h-full'>
-              <CardContent className='p-6 flex flex-col items-center justify-center min-h-[250px]'>
-                <Radio className='w-16 h-16 mb-6 text-orange-500' />
-                <h2 className='text-2xl font-semibold mb-2 text-white text-center'>
-                  AI Podcast
-                </h2>
-                <p className='text-center text-gray-300'>Two Speakers</p>
-                <p className='text-center text-gray-400 text-sm mt-2'>
-                  Streaming
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link
-            href='/voice-to-image'
-            className='block transform hover:scale-105 transition-all duration-300'
-          >
-            <Card className='bg-[#1e293b] border-[#334155] hover:bg-[#2d3748] h-full'>
-              <CardContent className='p-6 flex flex-col items-center justify-center min-h-[250px]'>
-                <Image className='w-16 h-16 mb-6 text-orange-500' />
-                <h2 className='text-2xl font-semibold mb-2 text-white text-center'>
-                  Voice-To-Image
-                </h2>
-                <p className='text-center text-gray-300'>
-                  Create image using Fal AI
-                </p>
-                <p className='text-center text-gray-400 text-sm mt-2'>
-                  Web Embed Example
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          {/* <Link
-            href='/agents'
-            className='block transform hover:scale-105 transition-all duration-300'
-          >
-            <Card className='bg-[#1e293b] border-[#334155] hover:bg-[#2d3748] h-full'>
-              <CardContent className='p-6 flex flex-col items-center justify-center min-h-[250px]'>
-                <Robot className='w-16 h-16 mb-6 text-orange-500' />
-                <h2 className='text-2xl font-semibold mb-2 text-white text-center'>
-                  AI Voice Agents
-                </h2>
-                <p className='text-center text-gray-300'>Build your own</p>
-                <p className='text-center text-gray-400 text-sm mt-2'>
-                  Customizable AI Voices
-                </p>
-              </CardContent>
-            </Card>
-          </Link> */}
+          {features.map((feature, index) => (
+            <FeatureCard
+              key={index}
+              href={feature.href}
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+              subDescription={feature.subDescription}
+            />
+          ))}
         </div>
       </main>
     </div>
