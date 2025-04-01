@@ -77,7 +77,7 @@ export default function YouTubePlayer() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        Voice to YouTube : Play AI
+        Voice to YouTube
       </motion.h1>
       <motion.p
         className='text-xl font-semibold text-center text-white mb-4'
@@ -104,7 +104,7 @@ export default function YouTubePlayer() {
               <div className='relative w-full pt-[56.25%] bg-[#334155] rounded-lg'>
                 <div className='absolute top-0 left-0 w-full h-full flex items-center justify-center'>
                   <img
-                    src='/playcube.svg'
+                    src='/AugmentCode.png'
                     alt='Placeholder'
                     className='w-[200px] h-[200px] object-contain'
                   />
