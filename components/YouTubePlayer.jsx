@@ -72,12 +72,25 @@ export default function YouTubePlayer() {
   return (
     <div className='min-h-screen bg-[#1e293b] p-4 md:p-8'>
       <motion.h1
-        className='text-4xl font-bold text-center text-orange-500 mb-8'
+        className='text-4xl font-bold text-center text-orange-500 mb-8 flex items-center justify-center gap-2'
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        Voice to YouTube
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          strokeWidth='2'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+          className='w-8 h-8'
+        >
+          <path d='M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17' />
+          <path d='m10 15 5-3-5-3z' />
+        </svg>{' '}
+        TalkTube
       </motion.h1>
       <motion.p
         className='text-xl font-semibold text-center text-white mb-4'
