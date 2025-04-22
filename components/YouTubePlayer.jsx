@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import * as fal from '@fal-ai/serverless-client'
 import { open as openEmbed } from '@play-ai/web-embed'
 import { motion } from 'framer-motion'
-
+import { Youtube } from 'lucide-react'
 // Configure the fal proxy
 fal.config({
   proxyUrl: '/api/fal/proxy',
