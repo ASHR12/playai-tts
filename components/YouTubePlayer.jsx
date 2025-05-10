@@ -13,8 +13,14 @@ fal.config({
 export default function YouTubePlayer() {
   const [videoId, setVideoId] = useState('')
   const [videoTitle, setVideoTitle] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   async function searchYouTube(query) {
+    setIsLoading(true)
+    setError(null)
+    setVideoId('') // Clear previous video
+    setVideoTitle('')
     try {
       const response = await fetch('/api/youtube-search', {
         method: 'POST',
@@ -23,15 +29,27 @@ export default function YouTubePlayer() {
         },
         body: JSON.stringify({ query }),
       })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(
+          errorData.error || `HTTP error! status: ${response.status}`
+        )
+      }
+
       const data = await response.json()
       if (data.videoId && data.title) {
         setVideoId(data.videoId)
         setVideoTitle(data.title)
       } else {
-        console.error('No video found')
+        // This case might not be reached if the API throws an error first
+        throw new Error('No video found in API response')
       }
     } catch (error) {
       console.error('Error searching YouTube:', error)
+      setError(error.message || 'Failed to search YouTube')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -91,32 +109,46 @@ export default function YouTubePlayer() {
       <div className='max-w-7xl mx-auto mt-8'>
         <div className='flex flex-col md:flex-row gap-8 w-full'>
           <div className='w-full md:w-2/3'>
-            {videoId ? (
-              <div className='relative w-full pt-[56.25%]'>
+            <div className='relative w-full pt-[56.25%] bg-[#334155] rounded-lg overflow-hidden'>
+              {isLoading ? (
+                <div className='absolute inset-0 flex items-center justify-center'>
+                  <p className='text-white text-lg'>Loading video...</p>
+                  {/* Optional: Add a spinner animation here */}
+                </div>
+              ) : videoId ? (
                 <iframe
-                  className='absolute top-0 left-0 w-full h-full rounded-lg'
+                  className='absolute top-0 left-0 w-full h-full'
                   src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                  title={videoTitle || 'YouTube video player'}
                   allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
                   allowFullScreen
                 ></iframe>
-              </div>
-            ) : (
-              <div className='relative w-full pt-[56.25%] bg-[#334155] rounded-lg'>
-                <div className='absolute top-0 left-0 w-full h-full flex items-center justify-center'>
+              ) : (
+                <div className='absolute inset-0 flex items-center justify-center'>
                   <img
                     src='/AugmentCode.png'
                     alt='Placeholder'
-                    className='w-[200px] h-[200px] object-contain'
+                    className='w-[150px] h-[150px] md:w-[200px] md:w-[200px] object-contain'
                   />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div className='w-full md:w-1/3'>
             <h2 className='text-2xl font-bold text-white mb-4 break-words'>
-              {videoTitle || 'No video selected'}
+              {isLoading ? 'Searching...' : videoTitle || 'No video selected'}
             </h2>
+            {error && (
+              <motion.div
+                className='bg-red-500 text-white p-3 rounded-md mb-4'
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                Error: {error}
+              </motion.div>
+            )}
             <p className='text-gray-300'>
               Use voice commands to search for and play YouTube videos. Try
               saying "Play [song name]" or "Search for [video topic]".

@@ -1,64 +1,70 @@
 import { NextResponse } from 'next/server'
 import { google } from 'googleapis'
 
-const YOUTUBE_CATEGORY_MUSIC = '10'
+// Configuration constants
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
 const MAX_RESULTS = 1
+const YOUTUBE_PARTS = 'id,snippet'
 
-const createYouTubeClient = () => {
+function createYouTubeClient() {
   return google.youtube({
     version: 'v3',
-    auth: process.env.YOUTUBE_API_KEY,
+    auth: YOUTUBE_API_KEY,
   })
 }
 
-const searchVideo = async (youtube, query) => {
+async function searchVideo(youtube, query) {
   const response = await youtube.search.list({
-    part: 'id,snippet',
+    part: YOUTUBE_PARTS,
     q: query,
     type: 'video',
     maxResults: MAX_RESULTS,
-    videoCategoryId: YOUTUBE_CATEGORY_MUSIC,
   })
-
-  if (!response.data.items.length) {
-    throw new Error('No video found')
+  const items = response.data?.items || []
+  if (items.length === 0) {
+    const error = new Error(`No video found for query "${query}"`)
+    error.status = 404
+    throw error
   }
-
-  const video = response.data.items[0]
-  return {
-    videoId: video.id.videoId,
-    title: video.snippet.title,
-  }
+  const {
+    id: { videoId },
+    snippet: { title },
+  } = items[0]
+  return { videoId, title }
 }
 
-export async function POST(req) {
+export async function POST(request) {
+  let body
   try {
-    const { query } = await req.json()
-    
-    if (!query) {
-      return NextResponse.json(
-        { error: 'Search query is required' },
-        { status: 400 }
-      )
-    }
-
-    const youtube = createYouTubeClient()
-    const videoData = await searchVideo(youtube, query)
-    
-    return NextResponse.json(videoData)
-  } catch (error) {
-    console.error('YouTube API Error:', error)
-    
-    if (error.message === 'No video found') {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 404 }
-      )
-    }
-
+    body = await request.json()
+  } catch {
     return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
+      { status_message: 'Bad JSON body.' },
+      { status: 400 }
+    )
+  }
+
+  const { query } = body
+  if (typeof query !== 'string' || !query.trim()) {
+    return NextResponse.json(
+      { status_message: 'The search query parameter provided was not valid or empty.' },
+      { status: 400 }
+    )
+  }
+
+  const youtube = createYouTubeClient()
+  try {
+    const result = await searchVideo(youtube, query.trim())
+    return NextResponse.json(result)
+  } catch (e) {
+    const status = e.status || 500
+    const message =
+      status === 404
+        ? e.message
+        : 'An internal server error occurred during video search.'
+    return NextResponse.json(
+      { status_message: message },
+      { status }
     )
   }
 }
