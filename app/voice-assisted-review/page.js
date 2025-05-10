@@ -1,144 +1,229 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Star, MessageSquare, User, ThumbsUp } from 'lucide-react'
 import { open as openEmbed } from '@play-ai/web-embed'
+import { toast } from 'sonner'
 
-// Replace with your web embed ID
-const webEmbedId = ''
+const webEmbedId = process.env.NEXT_PUBLIC_WEB_EMBED_ID || ''
+
+const formFields = [
+  {
+    key: 'name',
+    label: 'Name',
+    type: 'text',
+    argType: 'string',
+    icon: User,
+    required: true,
+  },
+  {
+    key: 'stars_1_to_5',
+    label: 'Star Rating (1-5)',
+    type: 'text',
+    argType: 'number',
+    icon: Star,
+    required: true,
+    validate: (value) => {
+      const num = Number(value)
+      return num >= 1 && num <= 5
+    },
+  },
+  {
+    key: 'review',
+    label: 'Leave a review!',
+    type: 'textarea',
+    argType: 'string',
+    icon: MessageSquare,
+    required: true,
+    minLength: 10,
+  },
+  {
+    key: 'come_back',
+    label: 'Would you come back?',
+    type: 'checkbox',
+    argType: 'boolean',
+    icon: ThumbsUp,
+  },
+]
 
 export default function FeedbackForm() {
-  const formFields = [
-    {
-      key: 'name',
-      label: 'Name',
-      type: 'text',
-      argType: 'string',
-      icon: User,
-    },
-    {
-      key: 'stars_1_to_5',
-      label: 'Star Rating (1-5)',
-      type: 'text',
-      argType: 'number',
-      icon: Star,
-    },
-    {
-      key: 'review',
-      label: 'Leave a review!',
-      type: 'textarea',
-      argType: 'string',
-      icon: MessageSquare,
-    },
-    {
-      key: 'come_back',
-      label: 'Would you come back?',
-      type: 'checkbox',
-      argType: 'boolean',
-      icon: ThumbsUp,
-    },
-  ]
-
   const [formValues, setFormValues] = useState({})
   const [showSuccess, setShowSuccess] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  useEffect(() => {
+  const initializeFormValues = useCallback(() => {
     const initialFormValues = {}
     formFields.forEach((field) => {
-      if (field.type === 'text' || field.type === 'textarea') {
-        initialFormValues[field.key] = { value: '' }
-      } else if (field.type === 'checkbox') {
-        initialFormValues[field.key] = { value: false }
+      initialFormValues[field.key] = {
+        value: field.type === 'checkbox' ? false : '',
+        error: null,
       }
     })
     setFormValues(initialFormValues)
   }, [])
 
+  useEffect(() => {
+    initializeFormValues()
+  }, [initializeFormValues])
+
+  const validateForm = () => {
+    let isValid = true
+    const newFormValues = { ...formValues }
+
+    formFields.forEach((field) => {
+      const value = formValues[field.key]?.value
+      let error = null
+
+      if (field.required && !value) {
+        error = 'This field is required'
+      } else if (field.validate && !field.validate(value)) {
+        error = 'Invalid value'
+      } else if (field.minLength && value.length < field.minLength) {
+        error = `Minimum ${field.minLength} characters required`
+      }
+
+      newFormValues[field.key] = { ...newFormValues[field.key], error }
+      if (error) isValid = false
+    })
+
+    setFormValues(newFormValues)
+    return isValid
+  }
+
+  const handleFieldChange = (key, value) => {
+    setFormValues((prev) => ({
+      ...prev,
+      [key]: { value, error: null },
+    }))
+  }
+
   const events = [
     {
       name: 'update-form-field',
-      when: `The user gives a value for a form field`,
+      when: 'The user gives a value for a form field',
       data: {
         key: { type: 'string', description: 'The form field to update' },
-        type: {
-          type: 'string',
-          description:
-            'The type of the form field (string, number, or boolean)',
-        },
-        stringValue: {
-          type: 'string',
-          description:
-            "The value to update the form field with, if it's a string value",
-        },
-        numberValue: {
-          type: 'number',
-          description:
-            "The value to update the form field with, if it's a number value",
-        },
-        booleanValue: {
-          type: 'boolean',
-          description:
-            "The value to update the form field with, if it's a boolean value",
-        },
+        type: { type: 'string', description: 'The type of the form field' },
+        stringValue: { type: 'string', description: 'String value' },
+        numberValue: { type: 'number', description: 'Number value' },
+        booleanValue: { type: 'boolean', description: 'Boolean value' },
       },
     },
     {
       name: 'submit-form',
-      when: `The user wants to submit the form or says they are done`,
-      data: {}, // No additional data needed for submission
+      when: 'The user wants to submit the form',
+      data: {},
     },
   ]
 
-  const prompt = `This form is for feedback submission. Here is a list of form fields: ${formFields
-    .map((field) => `${field.key} (${field.argType})`)
-    .join(
-      ', '
-    )}. Call "update-form-field" IMMEDIATELY after each value is given by the user for the form field , don't ask until it's updated. When the user wants to submit the form or indicates they are done, call "submit-form".`
-
-  const onEvent = (event) => {
-    console.log('onEvent: ', event)
+  const onEvent = useCallback((event) => {
     if (event.name === 'update-form-field') {
-      let value = ''
-      switch (event.data.type) {
-        case 'string':
-          value = event.data.stringValue
-          break
-        case 'number':
-          value = event.data.numberValue
-          break
-        case 'boolean':
-          value = event.data.booleanValue
-          break
-      }
-
-      setFormValues((oldFormValues) => ({
-        ...oldFormValues,
-        [event.data.key]: { value },
-      }))
+      const value = event.data[`${event.data.type}Value`]
+      handleFieldChange(event.data.key, value)
     } else if (event.name === 'submit-form') {
-      // Handle form submission
+      handleSubmit()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (webEmbedId) {
+      openEmbed(webEmbedId, {
+        events,
+        onEvent,
+        prompt: `This form is for feedback submission. Fields: ${formFields
+          .map((field) => `${field.key} (${field.argType})`)
+          .join(
+            ', '
+          )}. Update fields immediately after user input. Submit when done.`,
+      })
+    }
+  }, [onEvent])
+
+  const handleSubmit = async () => {
+    if (!validateForm() || isSubmitting) return
+
+    setIsSubmitting(true)
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       console.log('Feedback submitted:', formValues)
       setShowSuccess(true)
-      setTimeout(() => setShowSuccess(false), 5000)
+      toast.success('Thank you for your feedback!')
+      setTimeout(() => {
+        setShowSuccess(false)
+        initializeFormValues()
+      }, 3000)
+    } catch (error) {
+      toast.error('Failed to submit feedback. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  useEffect(() => {
-    openEmbed(webEmbedId, {
-      events,
-      onEvent,
-      prompt,
-    })
-  }, [])
+  const renderField = (field) => {
+    if (!formValues[field.key]) return null
 
-  const handleSubmitClick = () => {
-    console.log('Feedback submitted:', formValues)
-    setShowSuccess(true)
-    setTimeout(() => setShowSuccess(false), 3000)
+    const Icon = field.icon
+    const commonProps = {
+      id: field.key,
+      name: field.key,
+      value: formValues[field.key]?.value,
+      onChange: (e) => handleFieldChange(field.key, e.target.value),
+      className: `mt-1 block w-full bg-[#334155]/50 border-[#475569] text-white placeholder-gray-400 text-lg pl-10 ${
+        formValues[field.key]?.error ? 'border-red-500' : ''
+      }`,
+    }
+
+    return (
+      <div key={field.key}>
+        <label
+          htmlFor={field.key}
+          className='block text-lg font-medium text-gray-300 mb-2'
+        >
+          {field.label}
+          {field.required && <span className='text-red-500 ml-1'>*</span>}
+        </label>
+        <div className='relative'>
+          {field.type === 'textarea' ? (
+            <Textarea
+              {...commonProps}
+              onChange={(e) => handleFieldChange(field.key, e.target.value)}
+              placeholder={`Enter your ${field.label.toLowerCase()}...`}
+              rows={4}
+              className={`${commonProps.className} pt-2`}
+            />
+          ) : field.type === 'checkbox' ? (
+            <div className='flex items-center gap-2'>
+              <input
+                type='checkbox'
+                id={field.key}
+                name={field.key}
+                checked={formValues[field.key]?.value}
+                onChange={(e) => handleFieldChange(field.key, e.target.checked)}
+                className='w-4 h-4 text-orange-500 bg-[#334155]/50 border-[#475569] rounded focus:ring-orange-500'
+              />
+              <label htmlFor={field.key}>{field.label}</label>
+            </div>
+          ) : (
+            <Input
+              {...commonProps}
+              type={field.type}
+              placeholder={field.label}
+            />
+          )}
+          <Icon className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5' />
+        </div>
+        {formValues[field.key]?.error && (
+          <p className='mt-1 text-sm text-red-500'>
+            {formValues[field.key].error}
+          </p>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -150,97 +235,15 @@ export default function FeedbackForm() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form className='space-y-6'>
-            {formFields.map((field) => {
-              if (!formValues[field.key]) {
-                return null
-              }
-
-              const label = (
-                <label
-                  htmlFor={field.key}
-                  className='block text-lg font-medium text-gray-300 mb-2'
-                >
-                  {field.label}
-                </label>
-              )
-
-              const Icon = field.icon
-
-              switch (field.type) {
-                case 'text':
-                  return (
-                    <div key={field.key}>
-                      {label}
-                      <div className='relative'>
-                        <Input
-                          type='text'
-                          id={field.key}
-                          name={field.key}
-                          value={formValues[field.key]?.value}
-                          onChange={(e) => {
-                            setFormValues({
-                              ...formValues,
-                              [field.key]: { value: e.target.value },
-                            })
-                          }}
-                          className='mt-1 block w-full bg-[#334155]/50 border-[#475569] text-white placeholder-gray-400 text-lg pl-10'
-                          placeholder={field.label}
-                        />
-                        <Icon className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5' />
-                      </div>
-                    </div>
-                  )
-                case 'textarea':
-                  return (
-                    <div key={field.key}>
-                      {label}
-                      <div className='relative'>
-                        <Textarea
-                          id={field.key}
-                          name={field.key}
-                          value={formValues[field.key]?.value}
-                          onChange={(e) => {
-                            setFormValues({
-                              ...formValues,
-                              [field.key]: { value: e.target.value },
-                            })
-                          }}
-                          className='mt-1 block w-full bg-[#334155]/50 border-[#475569] text-white placeholder-gray-400 text-lg pl-10 pt-2'
-                          placeholder={`Enter your ${field.label.toLowerCase()}...`}
-                          rows={4}
-                        />
-                        <Icon className='absolute left-3 top-3 text-gray-400 w-5 h-5' />
-                      </div>
-                    </div>
-                  )
-                case 'checkbox':
-                  return (
-                    <div key={field.key} className='flex items-center gap-2'>
-                      <input
-                        type='checkbox'
-                        id={field.key}
-                        name={field.key}
-                        checked={formValues[field.key]?.value}
-                        onChange={(e) => {
-                          setFormValues({
-                            ...formValues,
-                            [field.key]: { value: e.target.checked },
-                          })
-                        }}
-                        className='w-4 h-4 text-orange-500 bg-[#334155]/50 border-[#475569] rounded focus:ring-orange-500'
-                      />
-                      {label}
-                    </div>
-                  )
-              }
-            })}
+          <form className='space-y-6' onSubmit={(e) => e.preventDefault()}>
+            {formFields.map(renderField)}
             <Button
-              type='button'
-              className='w-full bg-orange-500 hover:bg-orange-600 text-white text-lg py-6'
-              onClick={handleSubmitClick}
+              type='submit'
+              className='w-full bg-orange-500 hover:bg-orange-600 text-white text-lg py-6 disabled:opacity-50'
+              onClick={handleSubmit}
+              disabled={isSubmitting}
             >
-              Submit Feedback
+              {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
             </Button>
           </form>
           {showSuccess && (
